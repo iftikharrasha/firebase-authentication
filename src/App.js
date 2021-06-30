@@ -12,6 +12,7 @@ if (!firebase.apps.length) {
 }
 
 function App(){
+  const [newUser, setNewUser] = useState(false);
   const [user, setUser] = useState({
     isSignedIn: false,
     name: '',
@@ -84,7 +85,7 @@ function App(){
   }
 
   const handleSubmit = (event) => {
-    if(user.email && user.password){
+    if(newUser && user.email && user.password){
       firebase.auth().createUserWithEmailAndPassword(user.email, user.password)
         .then((res) => {
 
@@ -99,6 +100,21 @@ function App(){
           newUserInfo.error = error.message;
           newUserInfo.success = false;
           setUser(newUserInfo);
+        });
+    }
+    if(!newUser && user.email && user.password){
+      firebase.auth().signInWithEmailAndPassword(user.email, user.password)
+        .then((res) => {
+            const newUserInfo = {...user};
+            newUserInfo.error = '';
+            newUserInfo.success = true;
+            setUser(newUserInfo);
+        })
+        .catch((error) => {
+            const newUserInfo = {...user};
+            newUserInfo.error = error.message;
+            newUserInfo.success = false;
+            setUser(newUserInfo);
         });
     }
     event.preventDefault(); //preventing reloading the page
@@ -120,8 +136,11 @@ function App(){
       }
 
       <h1>Our Own authentication</h1>
-
+      <input type="checkbox" name="newUser" onChange={() => setNewUser(!newUser)}/>
+      <label for="newUser">New User Sign Up</label>
       <form onSubmit={handleSubmit}>
+        {newUser && <input type="text" name="name" placeholder="write your name" required/>}
+        <br />
         <input type="text" onChange={handleBlur} name="email" placeholder="write your email" required/>
         <br />
         <input type="password" onChange={handleBlur} name="password" id="" placeholder="your password" required/>
@@ -130,7 +149,7 @@ function App(){
       </form>
       
       <p style={{color: 'red'}}>{user.error}</p>
-      { user.success && <p style={{color: 'green'}}>User Created Successfully!</p> }
+      { user.success && <p style={{color: 'green'}}>User {newUser ? 'Created' : 'Logged in' } Successfully!</p> }
 
       <div>
             <p>{user.email}</p>
