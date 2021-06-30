@@ -16,7 +16,8 @@ function App(){
     isSignedIn: false,
     name: '',
     email: '',
-    photo: ''
+    photo: '',
+    pass: ''
   })
   const provider = new firebase.auth.GoogleAuthProvider();
 
@@ -48,7 +49,9 @@ function App(){
         isSignedIn: false,
         name: '',
         email: '',
-        photo: ''
+        photo: '',
+        success: false,
+        error: ''
       }
       setUser(signedOutUser);
     }).catch((error) => {
@@ -58,22 +61,47 @@ function App(){
   }
 
   const handleBlur = (event) => {
-    console.log(event.target.name, event.target.value);
+    // console.log(event.target.name, event.target.value);
+    let isFormValid;
+
     if(event.target.name === 'email'){
       const regexEm = /\S+@\S+\.\S+/;
-      const isEmailValid = regexEm.test(event.target.value);
-      console.log(isEmailValid);
+      isFormValid = regexEm.test(event.target.value);
+      // console.log(isFormValid);
     }
     if(event.target.name === 'password'){
       const regexPass = /\d{1}/;
-      const isPassLength = event.target.value.length > 6;
       const isPassNumber = regexPass.test(event.target.value);
-      console.log(isPassLength && isPassNumber); 
+      const isPassLength = event.target.value.length > 6;
+
+      isFormValid = isPassLength && isPassNumber;
+    }
+    if(isFormValid){
+      const newUserInfo = {...user};
+      newUserInfo[event.target.name] = event.target.value;
+      setUser(newUserInfo);
     }
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = (event) => {
+    if(user.email && user.password){
+      firebase.auth().createUserWithEmailAndPassword(user.email, user.password)
+        .then((res) => {
 
+          // Signed in 
+          const newUserInfo = {...user};
+          newUserInfo.error = '';
+          newUserInfo.success = true;
+          setUser(newUserInfo);
+        })
+        .catch((error) => {
+          const newUserInfo = {...user};
+          newUserInfo.error = error.message;
+          newUserInfo.success = false;
+          setUser(newUserInfo);
+        });
+    }
+    event.preventDefault(); //preventing reloading the page
   }
 
   return (
@@ -93,7 +121,7 @@ function App(){
 
       <h1>Our Own authentication</h1>
 
-      <form onSubimit={handleSubmit}>
+      <form onSubmit={handleSubmit}>
         <input type="text" onChange={handleBlur} name="email" placeholder="write your email" required/>
         <br />
         <input type="password" onChange={handleBlur} name="password" id="" placeholder="your password" required/>
@@ -101,6 +129,12 @@ function App(){
         <input type="submit" value="submit"/>
       </form>
       
+      <p style={{color: 'red'}}>{user.error}</p>
+      { user.success && <p style={{color: 'green'}}>User Created Successfully!</p> }
+
+      <div>
+            <p>{user.email}</p>
+      </div>
       
     </div>
   );
