@@ -7,8 +7,9 @@ import "firebase/analytics";
 import "firebase/auth";
 import firebaseConfig from './firebase.config';
 
-firebase.initializeApp(firebaseConfig);
-
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 
 function App(){
   const [user, setUser] = useState({
@@ -56,6 +57,25 @@ function App(){
     });
   }
 
+  const handleBlur = (event) => {
+    console.log(event.target.name, event.target.value);
+    if(event.target.name === 'email'){
+      const regexEm = /\S+@\S+\.\S+/;
+      const isEmailValid = regexEm.test(event.target.value);
+      console.log(isEmailValid);
+    }
+    if(event.target.name === 'password'){
+      const regexPass = /\d{1}/;
+      const isPassLength = event.target.value.length > 6;
+      const isPassNumber = regexPass.test(event.target.value);
+      console.log(isPassLength && isPassNumber); 
+    }
+  }
+
+  const handleSubmit = () => {
+
+  }
+
   return (
     <div className="App">
       {
@@ -70,6 +90,18 @@ function App(){
             <p>{user.email}</p>
         </div>
       }
+
+      <h1>Our Own authentication</h1>
+
+      <form onSubimit={handleSubmit}>
+        <input type="text" onChange={handleBlur} name="email" placeholder="write your email" required/>
+        <br />
+        <input type="password" onChange={handleBlur} name="password" id="" placeholder="your password" required/>
+        <br />
+        <input type="submit" value="submit"/>
+      </form>
+      
+      
     </div>
   );
 }
